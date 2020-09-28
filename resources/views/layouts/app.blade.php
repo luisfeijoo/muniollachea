@@ -13,9 +13,7 @@
 <body>
 <div id="app">
     <!-- Header -->
-    <header id="layout-header">
-
-    </header>
+    @include('partials.header')
     <!-- Content -->
     <section id="app">
         @yield('content')
