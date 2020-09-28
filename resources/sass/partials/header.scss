@@ -1,0 +1,49 @@
+.is-sticky-top {
+    position: sticky !important;
+    top: 0;
+    z-index: 10;
+}
+
+.navbar-brand {
+    .navbar-item img {
+        max-height: none;
+    }
+}
+
+.nav-app-top {
+    .level-item a {
+        color: #e5e5e5;
+        font-size: 0.8em;
+        font-weight: 400;
+
+        &:hover {
+            transition: 0.5s;
+            color: white !important;
+        }
+    }
+}
+
+.nav-app-main {
+    .navbar-link {
+        font-size: 0.89em;
+        line-height: 16px;
+        font-weight: 400;
+        //text-align: center;
+        .text-small {
+            font-size: 14px;
+        }
+    }
+
+    .navbar-dropdown {
+        .navbar-item {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    }
+}
+
+.navbar-brand {
+    .navbar-burger:hover {
+        color: white;
+    }
+}
