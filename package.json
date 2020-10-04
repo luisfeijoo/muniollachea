@@ -20,6 +20,7 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
+        "@splidejs/vue-splide": "^0.3.5",
         "bulma": "^0.9.0",
         "vue": "^2.6.12"
     }
