@@ -1,13 +1,7 @@
 <template>
     <splide :options="options">
-        <splide-slide>
-            <img src="/img/carousel/1.jpg">
-        </splide-slide>
-        <splide-slide>
-            <img src="/img/carousel/2.jpg">
-        </splide-slide>
-        <splide-slide>
-            <img src="/img/carousel/3.jpg">
+        <splide-slide v-for="s in slides" :key="s.src">
+                <img :src="'/img/carousel/'+s.src" />
         </splide-slide>
     </splide>
 </template>
@@ -26,12 +20,18 @@
                     type:'loop',
                     heightRatio: 0.25,
                     cover: true,
+                    autoplay    : true,
                     breakpoints: {
                         640: {
                             height: '17rem',
                         }
                     }
-                }
+                },
+                slides: [
+                    { src: '1.jpg' },
+                    { src: '2.jpg' },
+                    { src: '3.jpg' },
+                ]
             }
         }
     }

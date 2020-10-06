@@ -6229,6 +6229,752 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/@vizuaalog/bulmajs/src/ConfigBag.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/@vizuaalog/bulmajs/src/ConfigBag.js ***!
+  \**********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ConfigBag; });
+/**
+ * Object to hold a plugin's configuration
+ * @class ConfigBag
+ * @since 0.11.0
+ * @author Thomas Erbe <vizuaalog@gmail.com>
+ */
+class ConfigBag {
+    constructor(initialConfig = []) {
+        if(typeof initialConfig !== 'object') {
+            throw new TypeError('initialConfig must be of type object.');
+        }
+
+        this._items = initialConfig;
+    }
+
+    /**
+     * Set a new config property
+     * @param {string} key The config property's key
+     * @param {mixed} value The config property's value
+     */
+    set(key, value) {
+        if(!key || !value) {
+            throw new Error('A key and value must be provided when setting a new option.');
+        }
+
+        this._items[key] = value;
+    }
+
+    /**
+     * Check if a key exists
+     * @param {string} key
+     * @returns {boolean}
+     */
+    has(key) {
+        if(!key) {
+            throw new Error('A key must be provided.');
+        }
+
+        return (this._items.hasOwnProperty(key) && this._items[key]);
+    }
+
+    /**
+     * Get a property by it's key. Returns the defaultValue if it doesn't exists
+     * @param {string} key 
+     * @param {mixed} defaultValue 
+     * @returns {mixed}
+     */
+    get(key, defaultValue = null) {
+        if(defaultValue && !this.has(key)) {
+            if(typeof defaultValue === 'function') {
+                return defaultValue();
+            }
+            
+            return defaultValue;
+        }
+
+        return this._items[key];
+    }
+}
+
+/***/ }),
+
+/***/ "./node_modules/@vizuaalog/bulmajs/src/Data.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@vizuaalog/bulmajs/src/Data.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+class Data {
+    constructor() {
+        this._data = {};
+    }
+
+    set(uid, key, value) {
+        if(!this._data.hasOwnProperty(uid)) {
+            this._data[uid] = {};
+        }
+
+        this._data[uid][key] = value;
+    }
+
+    get(uid, key) {
+        if(!this._data.hasOwnProperty(uid)) {
+            return undefined;
+        }
+
+        return this._data[uid][key];
+    }
+
+    destroy(uid) {
+        if(this._data.hasOwnProperty(uid)) {
+            delete this._data[uid];
+        }
+    }
+}
+
+Data.uid = 1;
+
+/* harmony default export */ __webpack_exports__["default"] = (Data);
+
+/***/ }),
+
+/***/ "./node_modules/@vizuaalog/bulmajs/src/core.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@vizuaalog/bulmajs/src/core.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Data */ "./node_modules/@vizuaalog/bulmajs/src/Data.js");
+
+
+/**
+ * Wrap an element around Bulma.
+ * @param {String|HTMLElement} selector The selector or HTMLElement to wrap.
+ */
+function Bulma(selector) {
+    if(! (this instanceof Bulma)) {
+        return new Bulma(selector);
+    }
+
+    if(selector instanceof Bulma) {
+        return selector;
+    }
+
+    if(selector instanceof HTMLElement) {
+        this._elem = selector;
+    } else {
+        this._elem = document.querySelector(selector);
+    }
+
+    if(!selector) {
+        this._elem = document.createElement('div');
+    }
+    
+    if(!this._elem.hasOwnProperty(Bulma.id)) {
+        this._elem[Bulma.id] = _Data__WEBPACK_IMPORTED_MODULE_0__["default"].uid++;
+    }
+
+    return this;
+}
+
+/**
+ * Current BulmaJS version.
+ * @type {String}
+ */
+Bulma.VERSION = '0.11.0';
+
+/**
+ * Unique ID of Bulma
+ * @type {String}
+ */
+Bulma.id = 'bulma-' + new Date().getTime();
+
+/**
+ * Global data cache for HTML elements
+ * @type {Data}
+ */
+Bulma.cache = new _Data__WEBPACK_IMPORTED_MODULE_0__["default"]();
+
+/**
+ * An index of the registered plugins
+ * @type {Object}
+ */
+Bulma.plugins = {};
+
+/**
+ * Helper method to create a new plugin.
+ * @param  {String} key The plugin's key
+ * @param  {Object} config The config to be passed to the plugin
+ * @return {Object} The newly created plugin instance
+ */
+Bulma.create = (key, config) => {
+    if(!key || !Bulma.plugins.hasOwnProperty(key)) {
+        throw new Error('[BulmaJS] A plugin with the key \''+key+'\' has not been registered.');
+    }
+
+    return new Bulma.plugins[key].handler(config);
+};
+
+/**
+ * Register a new plugin
+ * @param  {String} key The key to register the plugin under
+ * @param  {Object} plugin The plugin's main constructor
+ * @param  {number?} priority The priority this plugin has over other plugins. Higher means the plugin is registered before lower.
+ * @return {undefined}
+ */
+Bulma.registerPlugin = (key, plugin, priority = 0) => {
+    if(!key) {
+        throw new Error('[BulmaJS] Key attribute is required.');
+    }
+    
+    Bulma.plugins[key] = {
+        priority: priority,
+        handler: plugin
+    };
+
+    Bulma.prototype[key] = function(config) {
+        return new Bulma.plugins[key].handler(config, this);
+    };
+};
+
+/**
+ * Parse the HTML DOM searching for data-bulma attributes. We will then pass
+ * each element to the appropriate plugin to handle the required processing.
+ * @param  {HTMLElement} root The root of the document we're going to parse.
+ * @return {undefined}
+ */
+Bulma.parseDocument = (root = document) => {
+    let sortedPlugins = Object.keys(Bulma.plugins)
+        .sort((a, b) => Bulma.plugins[a].priority < Bulma.plugins[b].priority);
+
+    Bulma.each(sortedPlugins, (key) => {
+        if(!Bulma.plugins[key].handler.hasOwnProperty('parseDocument')) {
+            // eslint-disable-next-line no-console
+            console.error('[BulmaJS] Plugin ' + key + ' does not have a parseDocument method. Automatic document parsing is not possible for this plugin.');
+            return;
+        }
+
+        Bulma.plugins[key].handler.parseDocument(root);
+    });
+};
+
+/**
+ * Create an element and assign classes
+ * @param {string} name The name of the element to create
+ * @param {array} classes An array of classes to add to the element
+ * @return {HTMLElement} The newly created element
+ */
+Bulma.createElement = (name, classes) => {
+    if(!classes) {
+        classes = [];
+    }
+
+    if(typeof classes === 'string') {
+        classes = [classes];
+    }
+
+    let elem = document.createElement(name);
+
+    Bulma.each(classes, (className) => {
+        elem.classList.add(className);
+    });
+
+    return elem;
+};
+
+/**
+ * Find an element otherwise create a new one.
+ * @param {string} query The CSS selector query to find
+ * @param {HTMLElement|null} parent The parent we want to search/create within
+ * @param {[string]} elemName The name of the element to create
+ * @param {[array]} classes The classes to apply to the element
+ * @returns {HTMLElement} The HTML element we found or created
+ */
+Bulma.findOrCreateElement = (query, parent = document, elemName = 'div', classes = []) => {
+    var elem = parent.querySelector(query);
+
+    if(!elem) {
+        if(classes.length === 0) {
+            classes = query.split('.').filter((item) => {
+                return item;
+            });
+        }
+
+        var newElem = Bulma.createElement(elemName, classes);
+
+        parent.appendChild(newElem);
+
+        return newElem;
+    }
+
+    return elem;
+};
+
+/**
+ * For loop helper
+ * @param {*} objects The array/object to loop through
+ * @param {*} callback The callback used for each item
+ */
+Bulma.each = (objects, callback) => {
+    let i;
+
+    for(i = 0; i < objects.length; i++) {
+        callback(objects[i], i);
+    }
+};
+
+/**
+ * Make an AJAX GET request to the specified URL. Stripping any script tags from the response.
+ * @param {*} url The url to send the request to
+ * @returns {Promise} Returns a promise containing the response HTML or error
+ */
+Bulma.ajax = (url) => {
+    return new Promise((resolve, reject) => {
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+
+        request.onload = () => {
+            if (request.status >= 200 && request.status < 400) {
+                resolve(Bulma._stripScripts(request.responseText));
+            } else {
+                reject();
+            }
+        };
+
+        request.onerror = () => reject();
+
+        request.send();
+    });
+};
+
+/**
+ * Strip any script tags from a HTML string.
+ * @param {string} htmlString 
+ * @returns {string} The cleaned HTML string
+ * 
+ * @private
+ */
+Bulma._stripScripts = (htmlString) => {
+    var div = document.createElement('div');
+    div.innerHTML = htmlString;
+    
+    var scripts = div.getElementsByTagName('script');
+    
+    var i = scripts.length;
+    
+    while (i--) {
+        scripts[i].parentNode.removeChild(scripts[i]);
+    }
+    
+    return div.innerHTML.replace(/  +/g, ' ');
+};
+
+/**
+ * Get or set custom data on a Bulma element.
+ * @type {String} key
+ * @type {any} value
+ * @returns {Bulma}
+ */
+Bulma.prototype.data = function(key, value) {
+    if(!value) {
+        return Bulma.cache.get(this._elem[Bulma.id], key);
+    }
+
+    Bulma.cache.set(this._elem[Bulma.id], key, value);
+
+    return this;
+};
+
+/**
+ * Destroy the data for an element.
+ * @returns {Bulma}
+ */
+Bulma.prototype.destroyData = function() {
+    Bulma.cache.destroy(this._elem[Bulma.id]);
+
+    return this;
+};
+
+/**
+ * Returns the internal HTMLElement we're wrapping.
+ *
+ * @returns {HTMLElement}
+ */
+Bulma.prototype.getElement = function() {
+    return this._elem;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    if(window.hasOwnProperty('bulmaOptions') && window.bulmaOptions.autoParseDocument === false) {
+        return;
+    }
+
+    Bulma.parseDocument();
+});
+
+/* harmony default export */ __webpack_exports__["default"] = (Bulma);
+
+
+/***/ }),
+
+/***/ "./node_modules/@vizuaalog/bulmajs/src/plugin.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@vizuaalog/bulmajs/src/plugin.js ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Plugin; });
+/* harmony import */ var _ConfigBag__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ConfigBag */ "./node_modules/@vizuaalog/bulmajs/src/ConfigBag.js");
+/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core */ "./node_modules/@vizuaalog/bulmajs/src/core.js");
+
+
+
+/**
+ * Base plugin class. Provides basic, common functionality.
+ * @class Plugin
+ * @since 0.7.0
+ * @author  Thomas Erbe <vizuaalog@gmail.com>
+ */
+class Plugin {
+    /**
+     * Returns an object containing the default config for this plugin.
+     * @returns {object} The default config object.
+     */
+    static defaultConfig() {
+        return {};
+    }
+
+    /**
+     * Create a plugin.
+     * @param {object} config The config for this plugin
+     */
+    constructor(config = {}, root) {
+        config.root = (root instanceof _core__WEBPACK_IMPORTED_MODULE_1__["default"]) ? root._elem : root;
+
+        this.config = new _ConfigBag__WEBPACK_IMPORTED_MODULE_0__["default"]({...this.constructor.defaultConfig(), ...config});
+
+        if(!root && !this.config.has('parent')) {
+            throw new Error('A plugin requires a root and/or a parent.');
+        }
+
+        this.parent = this.config.get('parent', config.root ? config.root.parentNode : null);
+
+        this._events = {};
+    }
+
+    on(event, callback) {
+        if(!this._events.hasOwnProperty(event)) {
+            this._events[event] = [];
+        }
+
+        this._events[event].push(callback);
+    }
+
+    trigger(event, data = {}) {
+        if(!this._events.hasOwnProperty(event)) {
+            return;
+        }
+
+        for(let i = 0; i < this._events[event].length; i++) {
+            this._events[event][i](data);
+        }
+    }
+
+    destroy() {
+        Object(_core__WEBPACK_IMPORTED_MODULE_1__["default"])(this.root).destroyData();
+    }
+}
+
+/***/ }),
+
+/***/ "./node_modules/@vizuaalog/bulmajs/src/plugins/navbar.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/@vizuaalog/bulmajs/src/plugins/navbar.js ***!
+  \***************************************************************/
+/*! exports provided: Navbar, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Navbar", function() { return Navbar; });
+/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core */ "./node_modules/@vizuaalog/bulmajs/src/core.js");
+/* harmony import */ var _plugin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../plugin */ "./node_modules/@vizuaalog/bulmajs/src/plugin.js");
+
+
+
+/**
+ * @module Navbar
+ * @since  0.1.0
+ * @author  Thomas Erbe <vizuaalog@gmail.com>
+ */
+class Navbar extends _plugin__WEBPACK_IMPORTED_MODULE_1__["default"] {
+    /**
+     * Handle parsing the DOMs data attribute API.
+     * @param {HTMLElement} element The root element for this instance
+     * @return {undefined}
+     */
+    static parseDocument(context) {
+        let elements = context.querySelectorAll('.navbar');
+
+        _core__WEBPACK_IMPORTED_MODULE_0__["default"].each(elements, (element) => {
+            Object(_core__WEBPACK_IMPORTED_MODULE_0__["default"])(element).navbar({
+                sticky: element.hasAttribute('data-sticky') ? true : false,
+                stickyOffset: element.hasAttribute('data-sticky-offset') ? element.getAttribute('data-sticky-offset') : 0,
+                hideOnScroll: element.hasAttribute('data-hide-on-scroll') ? true : false,
+                tolerance: element.hasAttribute('data-tolerance') ? element.getAttribute('data-tolerance') : 0,
+                hideOffset: element.hasAttribute('data-hide-offset') ? element.getAttribute('data-hide-offset') : null,
+                shadow: element.hasAttribute('data-sticky-shadow') ? true : false
+            });
+        });
+    }
+
+    /**
+     * Returns an object containing the default config for this plugin.
+     * @returns {object} The default config object.
+     */
+    static defaultconfig() {
+        return {
+            sticky: false,
+            stickyOffset: 0,
+            hideOnScroll: false,
+            tolerance: 0,
+            hideOffset: null,
+            shadow: false
+        };
+    }
+
+    /**
+     * Plugin constructor
+     * @param  {Object} config The config object for this plugin
+     * @return {this} The newly created plugin instance
+     */
+    constructor(config, root) {
+        super(config, root);
+
+        // Work out the parent if it hasn't been supplied as an option.
+        if(this.parent === null) {
+            this.parent = this.config.get('root').parentNode;
+        }
+
+        /**
+         * The root navbar element.
+         * @type {HTMLElement}
+         */
+        this.root = this.config.get('root');
+
+        /**
+         * The element used for the trigger.
+         * @type {HTMLElement}
+         */
+        this.triggerElement = this.root.querySelector('.navbar-burger'),
+
+        /**
+         * The target element.
+         * @type {HTMLELement}
+         */
+        this.target = this.root.querySelector('.navbar-menu');
+
+        /**
+         * Should this navbar stick to the top of the page?
+         * @type {boolean}
+         */
+        this.sticky = !!this.config.get('sticky');
+        
+        /**
+         * The offset in pixels before the navbar will stick to the top of the page
+         * @type {number}
+         */
+        this.stickyOffset = parseInt(this.config.get('stickyOffset'));
+
+        /**
+         * Should the navbar hide when scrolling? Note: this just applies a 'is-hidden-scroll' class.
+         * @type {boolean}
+         */
+        this.hideOnScroll = !!this.config.get('hideOnScroll');
+
+        /**
+         * The amount of tolerance required before checking the navbar should hide/show
+         * @type {number}
+         */
+        this.tolerance = parseInt(this.config.get('tolerance'));
+
+        /**
+         * Add a shadow when the navbar is sticky?
+         * @type {boolean}
+         */
+        this.shadow = !!this.config.get('shadow');
+
+        /**
+         * The offset in pixels before the navbar will be hidden, defaults to the height of the navbar
+         * @type {number}
+         */
+        this.hideOffset = parseInt(this.config.get('hideOffset', Math.max(this.root.scrollHeight, this.stickyOffset)));
+
+        /**
+         * The last scroll Y known, this is used to calculate scroll direction
+         * @type {number}
+         */
+        this.lastScrollY = 0;
+
+        /**
+         * Bind the relevant event handlers to this instance. So that we can remove them if needed
+         */
+        this.handleScroll = this.handleScroll.bind(this);
+
+        Object(_core__WEBPACK_IMPORTED_MODULE_0__["default"])(this.root).data('navbar', this);
+
+        this.registerEvents();
+    }
+
+    /**
+     * Register all the events this module needs.
+     * @return {undefined}
+     */
+    registerEvents() {
+        this.triggerElement.addEventListener('click', this.handleTriggerClick.bind(this));
+
+        if(this.sticky) {
+            this.enableSticky();
+        }
+    }
+
+    /**
+     * Handle the click event on the trigger.
+     * @return {undefined}
+     */
+    handleTriggerClick() {
+        if(this.target.classList.contains('is-active')) {
+            this.target.classList.remove('is-active');
+            this.triggerElement.classList.remove('is-active');
+        } else {
+            this.target.classList.add('is-active');
+            this.triggerElement.classList.add('is-active');
+        }
+    }
+
+    /**
+     * Handle the scroll event
+     * @return {undefined}
+     */
+    handleScroll() {
+        this.toggleSticky(window.pageYOffset);
+    }
+
+    /**
+     * Enable the sticky feature by attaching the scroll event.
+     */
+    enableSticky() {
+        window.addEventListener('scroll', this.handleScroll);
+        this.root.setAttribute('data-sticky', '');
+        this.sticky = true;
+    }
+
+    /**
+     * Disable the sticky feature by removing the scroll event.
+     */
+    disableSticky() {
+        window.removeEventListener('scroll', this.handleScroll);
+        this.root.removeAttribute('data-sticky');
+        this.sticky = false;
+    }
+
+    /**
+     * Enable hide on scroll. Also enable sticky if it's not already.
+     */
+    enableHideOnScroll() {
+        if(!this.sticky) {
+            this.enableSticky();
+        }
+
+        this.root.setAttribute('data-hide-on-scroll', '');
+        this.hideOnScroll = true;
+    }
+
+    /**
+     * Disable hide on scroll, and show the navbar again if it's hidden.
+     */
+    disableHideOnScroll() {
+        this.root.removeAttribute('data-hide-on-scroll');
+        this.hideOnScroll = false;
+        this.root.classList.remove('is-hidden-scroll');
+    }
+
+    /**
+     * Toggle the navbar's sticky state
+     * @param {number} scrollY The amount of pixels that has been scrolled
+     * @return {undefined}
+     */
+    toggleSticky(scrollY) {
+        if(scrollY > this.stickyOffset) {
+            this.root.classList.add('is-fixed-top');
+            document.body.classList.add('has-navbar-fixed-top');
+
+            if(this.shadow) {
+                this.root.classList.add('has-shadow');
+            }
+        } else {
+            this.root.classList.remove('is-fixed-top');
+            document.body.classList.remove('has-navbar-fixed-top');
+
+            if(this.shadow) {
+                this.root.classList.remove('has-shadow');
+            }
+        }
+
+        if(this.hideOnScroll) {
+            let scrollDirection = this.calculateScrollDirection(scrollY, this.lastScrollY);
+            let triggeredTolerance = this.difference(scrollY, this.lastScrollY) >= this.tolerance;
+
+            if (scrollDirection === 'down') {
+                // only hide the navbar at the top if we reach a certain offset so the hiding is more smooth
+                let isBeyondTopOffset = scrollY > this.hideOffset;
+                if (triggeredTolerance && isBeyondTopOffset) {
+                    this.root.classList.add('is-hidden-scroll');
+                }
+            } else {
+                // if scrolling up to the very top where the navbar would be by default always show it
+                let isAtVeryTop = scrollY < this.hideOffset;
+                if (triggeredTolerance || isAtVeryTop) {
+                    this.root.classList.remove('is-hidden-scroll');
+                }
+            }
+
+            this.lastScrollY = scrollY;
+        }
+    }
+
+    difference(a, b) {
+        if (a > b) {
+            return a - b;
+        } else {
+            return b - a;
+        }
+    }
+
+    calculateScrollDirection(currentY, lastY) {
+        return currentY >= lastY ? 'down' : 'up';
+    }
+}
+
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].registerPlugin('navbar', Navbar);
+
+/* harmony default export */ __webpack_exports__["default"] = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ }),
+
 /***/ "./node_modules/axios/index.js":
 /*!*************************************!*\
   !*** ./node_modules/axios/index.js ***!
@@ -8060,12 +8806,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   components: {
@@ -8078,12 +8818,20 @@ __webpack_require__.r(__webpack_exports__);
         type: 'loop',
         heightRatio: 0.25,
         cover: true,
+        autoplay: true,
         breakpoints: {
           640: {
             height: '17rem'
           }
         }
-      }
+      },
+      slides: [{
+        src: '1.jpg'
+      }, {
+        src: '2.jpg'
+      }, {
+        src: '3.jpg'
+      }]
     };
   }
 });
@@ -26124,17 +26872,11 @@ var render = function() {
   return _c(
     "splide",
     { attrs: { options: _vm.options } },
-    [
-      _c("splide-slide", [
-        _c("img", { attrs: { src: "/img/carousel/1.jpg" } })
-      ]),
-      _vm._v(" "),
-      _c("splide-slide", [
-        _c("img", { attrs: { src: "/img/carousel/2.jpg" } })
-      ]),
-      _vm._v(" "),
-      _c("splide-slide", [_c("img", { attrs: { src: "/img/carousel/3.jpg" } })])
-    ],
+    _vm._l(_vm.slides, function(s) {
+      return _c("splide-slide", { key: s.src }, [
+        _c("img", { attrs: { src: "/img/carousel/" + s.src } })
+      ])
+    }),
     1
   )
 }
@@ -38630,16 +39372,29 @@ module.exports = function(module) {
 /*!*****************************!*\
   !*** ./resources/js/app.js ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vizuaalog_bulmajs_src_plugins_navbar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @vizuaalog/bulmajs/src/plugins/navbar */ "./node_modules/@vizuaalog/bulmajs/src/plugins/navbar.js");
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
+
 Vue.component('mesa-partes', __webpack_require__(/*! ./components/MesaPartes.vue */ "./resources/js/components/MesaPartes.vue")["default"]);
 Vue.component('carousel', __webpack_require__(/*! ./components/Carousel */ "./resources/js/components/Carousel.vue")["default"]);
 var vm = new Vue({
   el: '#app'
+});
+/*
+* Navbar mobile
+* */
+
+document.querySelectorAll('.navbar-link').forEach(function (navbarLink) {
+  navbarLink.addEventListener('click', function () {
+    navbarLink.nextElementSibling.classList.toggle('is-hidden-mobile');
+  });
 });
 
 /***/ }),
