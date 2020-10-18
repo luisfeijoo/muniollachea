@@ -113,7 +113,6 @@
                     },
                     onUploadProgress: function(progressEvent) {
                         var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
-
                     }
                 };
 

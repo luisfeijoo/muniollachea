@@ -4,6 +4,7 @@
 
 //FontsAwesome
 @import "./fontawesome/scss/fontawesome.scss";
+@import "./fontawesome/scss/solid";
 @import "./fontawesome/scss/light";
 @import "./fontawesome/scss/brands.scss";
 @import "./fontawesome/scss/regular.scss";
@@ -16,3 +17,13 @@
 
 
 
+.section-title {
+    border-bottom: 1px solid rgba(0, 86, 117, 0.25) !important;
+    border-left: 7px solid #a3137b !important;
+    padding-left: 8px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.28571429em;
+    margin: calc(2rem - .14285714em) 0 1rem;
+    color: #2c2d84;
+}

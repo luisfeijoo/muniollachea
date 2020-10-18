@@ -14,8 +14,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('web.welcome');
 });
+
+Route::get('/historia', 'PageController@historia')->name('page_historia');
+Route::get('/geografia', 'PageController@geografia')->name('page_geografia');
+Route::get('/turismo', 'PageController@turismo')->name('page_turismo');
 
 Route::get('/mesa-de-partes', function () {
     return view('mesa_de_partes');

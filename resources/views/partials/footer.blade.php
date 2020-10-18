@@ -20,7 +20,7 @@
 
             <div>
                 <i class="fal fa-envelope"></i>
-                <p><a href="mailto:municipalidadollachea@gmail.com">info@muniollachea.pe</a></p>
+                <p><a href="mailto:municipalidadollachea@gmail.com">municipalidadollachea@gmail.com</a></p>
             </div>
 
             <div>
@@ -34,8 +34,8 @@
                 La Municipalidad Distrital de Ollachea tiene como misión, brindar servicios de calidad con transparencia y tecnología en beneficio del ciudadano, logrando el desarrollo integral y sostenible, a través de una gestión participativa e innovadora.
             </p>
             <div class="footer-icons">
-                <a href="https://facebook.com/muniollachea2019" title="Facebook institucional | Municipalidad Distrital de Ollachea"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://www.youtube.com/channel/UCcuKCsxSBKVzISs58oJkwRA" title="Videos institucional | Youtube"><i class="fab fa-youtube has-text-danger-dark"></i></a>
+                <a href="//facebook.com/muniollachea2019" title="Facebook institucional | Municipalidad Distrital de Ollachea"><i class="fab fa-facebook-f"></i></a>
+                <a href="//youtube.com/channel/UCxXc3QMDV3Ug9O9w2vV5y1g" title="Videos institucional | Youtube"><i class="fab fa-youtube has-text-danger-dark"></i></a>
             </div>
         </div>
     </footer>

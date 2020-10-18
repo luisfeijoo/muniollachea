@@ -21778,6 +21778,26 @@ readers do not read off random characters that represent icons */
 @font-face {
   font-family: "Font Awesome 5 Pro";
   font-style: normal;
+  font-weight: 900;
+  font-display: auto;
+  src: url(/fonts/fa-solid-900.eot?9b39dfc9bafe5944979aff454bdfe44f);
+  src: url(/fonts/fa-solid-900.eot?9b39dfc9bafe5944979aff454bdfe44f) format("embedded-opentype"), url(/fonts/fa-solid-900.woff2?e245d7d62db89a9912e17b02bc23e256) format("woff2"), url(/fonts/fa-solid-900.woff?265b724844b97d7427fc4a44c9c2e43d) format("woff"), url(/fonts/fa-solid-900.ttf?27df36c7e2bec8e3624bed94f02e7aa8) format("truetype"), url(/fonts/fa-solid-900.svg?0259646b38bc6f3409fe2567a94c37b8) format("svg");
+}
+
+.fa,
+.fas {
+  font-family: "Font Awesome 5 Pro";
+  font-weight: 900;
+}
+
+/*!
+ * Font Awesome Pro 5.12.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ */
+
+@font-face {
+  font-family: "Font Awesome 5 Pro";
+  font-style: normal;
   font-weight: 300;
   font-display: auto;
   src: url(/fonts/fa-light-300.eot?97468fa17b539584bbe0b351319d66e7);
@@ -21865,6 +21885,10 @@ readers do not read off random characters that represent icons */
 
 .navbar-brand .navbar-burger:hover {
   color: white;
+}
+
+footer {
+  font-size: 14px;
 }
 
 .footer-distributed {
@@ -22040,5 +22064,16 @@ readers do not read off random characters that represent icons */
   .footer-distributed .footer-center i {
     margin-left: 0;
   }
+}
+
+.section-title {
+  border-bottom: 1px solid rgba(0, 86, 117, 0.25) !important;
+  border-left: 7px solid #a3137b !important;
+  padding-left: 8px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1.28571429em;
+  margin: calc(2rem - .14285714em) 0 1rem;
+  color: #2c2d84;
 }
 
